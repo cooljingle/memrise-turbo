@@ -5,7 +5,7 @@
 // @match          https://www.memrise.com/course/*/garden/*
 // @match          https://www.memrise.com/garden/water/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.1.9
+// @version        0.1.10
 // @updateURL      https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @grant          none
@@ -46,22 +46,24 @@ function processInput(e)
     try {
         var g = MEMRISE.garden;
         var b = g.box;
-        var v = b.$input.value();
+        var i = b.$input.input || b.$input;
+        var v = i.val();
+
         var lastChar = v.slice(-1);
         var clearBox = false;
         if(lastChar === "·" || lastChar === "；" || lastChar === ";") {
             clearBox = true;
-            b.$input.value(v.slice(0, -1));
+            i.val(v.slice(0, -1));
         }
         if(b.template !== "copytyping") {
             var s = g.scoring.score_response(
-                b.$input.value(), b.accepted, b.learnable.is_typing_strict);
+                i.val(), b.accepted, b.learnable.is_typing_strict);
             if (s === 1) {
                 MEMRISE.garden.box.check();
             }
         }
         if(clearBox) {
-            b.$input.value("");
+            i.val("");
         }
     } catch (err) {
         console.log('error - falling back to default behaviour', err);
