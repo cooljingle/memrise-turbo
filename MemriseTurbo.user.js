@@ -5,7 +5,7 @@
 // @match          https://www.memrise.com/course/*/garden/*
 // @match          https://www.memrise.com/garden/water/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.1.10
+// @version        0.1.11
 // @updateURL      https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @grant          none
@@ -55,19 +55,46 @@ function processInput(e)
             clearBox = true;
             i.val(v.slice(0, -1));
         }
-        if(b.template !== "copytyping") {
+        if(b.accepted) {
             var s = g.scoring.score_response(
                 i.val(), b.accepted, b.learnable.is_typing_strict);
-            if (s === 1) {
-                MEMRISE.garden.box.check();
-            }
+            if (s === 1)
+                b.check();
         }
-        if(clearBox) {
+        if(clearBox)
             i.val("");
-        }
     } catch (err) {
         console.log('error - falling back to default behaviour', err);
     }
+}
+
+//don't score IME input while still inputting
+MEMRISE.garden.boxes.load = (function() {
+    var cached_function = MEMRISE.garden.boxes.load;
+    return function() {
+        NoScoreWhileInputting();
+        return cached_function.apply(this, arguments);
+    };
+}());
+
+function NoScoreWhileInputting() {
+    MEMRISE.garden.boxes.activate_box = (function () {
+        var cached_function = MEMRISE.garden.boxes.activate_box;
+        return function() {
+            var result = cached_function.apply(this, arguments);
+            var checkFn = this.current() && this.current().check;
+            if(checkFn) {
+                this.current().check = (function () {
+                    var cached_function = checkFn;
+                    return function() {
+                        if(!isComposing)
+                            cached_function.apply(this, arguments);
+                    };
+                }());
+            }
+            return result;
+        };
+    }());
 }
 
 // always let audio play in full
