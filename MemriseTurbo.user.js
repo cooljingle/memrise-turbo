@@ -5,7 +5,7 @@
 // @match          https://www.memrise.com/course/*/garden/*
 // @match          https://www.memrise.com/garden/water/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.1.11
+// @version        0.1.12
 // @updateURL      https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @grant          none
@@ -55,9 +55,9 @@ function processInput(e)
             clearBox = true;
             i.val(v.slice(0, -1));
         }
-        if(b.accepted) {
+        if(b.testData.correct) {
             var s = g.scoring.score_response(
-                i.val(), b.accepted, b.learnable.is_typing_strict);
+                i.val(), b.testData.correct, b.testData.is_strict);
             if (s === 1)
                 b.check();
         }
