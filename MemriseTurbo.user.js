@@ -5,22 +5,13 @@
 // @match          https://www.memrise.com/course/*/garden/*
 // @match          https://www.memrise.com/garden/water/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.1.12
+// @version        0.1.13
 // @updateURL      https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @grant          none
 // ==/UserScript==
 
 console.log("turbo script loaded");
-var oldstart = MEMRISE.garden.feedback.start;
-MEMRISE.garden.feedback.start = function (){
-    if (MEMRISE.garden.box.state === 'choosing-mem') {
-        oldstart(1);
-        MEMRISE.garden.boxes.advance();
-    }else{
-        MEMRISE.garden.box.next_press();
-    }
-};
 
 var isComposing = false;
 var cachedEvent;
@@ -55,9 +46,8 @@ function processInput(e)
             clearBox = true;
             i.val(v.slice(0, -1));
         }
-        if(b.testData.correct) {
-            var s = g.scoring.score_response(
-                i.val(), b.testData.correct, b.testData.is_strict);
+        if(b.get_score) {
+            var s = b.get_score();
             if (s === 1)
                 b.check();
         }
@@ -68,24 +58,24 @@ function processInput(e)
     }
 }
 
-//don't score IME input while still inputting
-MEMRISE.garden.boxes.load = (function() {
-    var cached_function = MEMRISE.garden.boxes.load;
+MEMRISE.garden.session_start = (function() {
+    var cached_function = MEMRISE.garden.session_start;
     return function() {
         NoScoreWhileInputting();
+        NoTimer();
         return cached_function.apply(this, arguments);
     };
 }());
 
+// don't score IME input while still inputting
 function NoScoreWhileInputting() {
-    MEMRISE.garden.boxes.activate_box = (function () {
-        var cached_function = MEMRISE.garden.boxes.activate_box;
+    MEMRISE.garden.session.make_box = (function () {
+        var cached_function = MEMRISE.garden.session.make_box;
         return function() {
             var result = cached_function.apply(this, arguments);
-            var checkFn = this.current() && this.current().check;
-            if(checkFn) {
-                this.current().check = (function () {
-                    var cached_function = checkFn;
+            if(result.check) {
+                result.check = (function () {
+                    var cached_function = result.check;
                     return function() {
                         if(!isComposing)
                             cached_function.apply(this, arguments);
@@ -97,11 +87,18 @@ function NoScoreWhileInputting() {
     }());
 }
 
+// always disable timer
+function NoTimer() {
+    MEMRISE.garden.session.make_box = (function () {
+        var cached_function = MEMRISE.garden.session.make_box;
+        return function() {
+            var result = cached_function.apply(this, arguments);
+            result.getTimerLength = () => 0;
+            return result;
+        };
+    }());
+}
+
 // always let audio play in full
 MEMRISE.audioPlayer.stop = $.noop;
 MEMRISE.audioPlayer.stopAfter = $.noop;
-
-// always disable timer
-$("div.garden-timer div.txt").bind("DOMSubtreeModified", function() {
-    MEMRISE.garden.timer.cancel();
-});
