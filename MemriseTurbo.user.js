@@ -73,24 +73,36 @@ function NoScoreWhileInputting() {
         var cached_function = MEMRISE.garden.session.make_box;
         return function() {
             var result = cached_function.apply(this, arguments);
+            //choosing mem
+                result.next_press = (function () {
+                    var cached_function = result.next_press;
+                    return function() {
+                        var skipChoosing = result.state === 'choosing-mem';
+                        cached_function.apply(this, arguments);
+                        if(skipChoosing){
+                            this.state = 'mem-chosen';
+                            result.next_press();
+                        }
+                    };
+                }());
+            //multiple choice
             if(result.select_choice) {
                 result.select_choice = (function () {
                     var cached_function = result.select_choice;
                     return function() {
-                        var b = MEMRISE.garden.box;
                         cached_function.apply(this, arguments);
-                        b.next_press();
+                        result.next_press();
                     };
                 }());
             }
+            //normal checks
             if(result.check) {
                 result.check = (function () {
                     var cached_function = result.check;
                     return function() {
                         if(!isComposing) {
-                            var b = MEMRISE.garden.box;
                             cached_function.apply(this, arguments);
-                            if(b.template !== 'copytyping' || b.answeredCorrectly) b.next_press(); //quick change screens
+                            if(result.template !== 'copytyping' || result.answeredCorrectly) result.next_press(); //quick change screens
                         }
                     };
                 }());
