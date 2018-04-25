@@ -5,7 +5,7 @@
 // @match          https://www.memrise.com/course/*/garden/*
 // @match          https://www.memrise.com/garden/water/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.1.16
+// @version        0.1.17
 // @updateURL      https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @grant          none
@@ -58,14 +58,11 @@ function processInput(e)
     }
 }
 
-MEMRISE.garden.session_start = (function() {
-    var cached_function = MEMRISE.garden.session_start;
-    return function() {
-        NoScoreWhileInputting();
-        NoTimer();
-        return cached_function.apply(this, arguments);
-    };
-}());
+
+MEMRISE.garden._events.start.push(() => {
+    NoScoreWhileInputting();
+    NoTimer();
+});
 
 // don't score IME input while still inputting
 function NoScoreWhileInputting() {
