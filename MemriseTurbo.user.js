@@ -3,9 +3,10 @@
 // @namespace      https://github.com/infofarmer
 // @description    Makes Memrise faster
 // @match          https://www.memrise.com/course/*/garden/*
-// @match          https://www.memrise.com/garden/water/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.1.17
+// @match          https://app.memrise.com/course/*/garden/*
+// @match          https://app.memrise.com/garden/review/*
+// @version        0.1.18
 // @updateURL      https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-turbo/raw/master/MemriseTurbo.user.js
 // @grant          none
